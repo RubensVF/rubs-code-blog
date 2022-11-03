@@ -1,0 +1,24 @@
+---
+layout: "@/layouts/BlogPost"
+title: Como hacer un plugin para maven
+publishDate: 02 Nov 2022
+description: Este es una guia basica de como crear un plugin para maven desde cero.
+tags: ["java", "maven"]
+value: 128
+---
+import { Code } from "astro/components";
+
+
+## Crear el proyecto de maven
+
+Como primer paso creamos un proyecto maven a partir de un arquetipo que ya nos prove el grupo Apache Maven.
+Para crear el proyecto ecribims el siguiente comando desde la terminal.
+
+```cmd
+mvn archetype:create
+  -DgroupId=com.chuidiang.ejemplos.plugin_maven
+  -DartifactId=plugin_maven
+  -DarchetypeArtifactId=maven-archetype-mojo
+```
+
+Una vez creado lo abrimos en nuestro editor favorito. 

@@ -6,8 +6,8 @@ import { sortMDByDate } from "@/util";
 import type { Post } from "@/types";
 
 const meta = {
-	title: "Astro Cactus",
-	description: "The perfect starter for your perfect blog.",
+	title: "Rubs Code Blog",
+	description: "Blog de desarollo de software",
 };
 
 const MAX_POSTS = 10;
@@ -17,17 +17,16 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 
 <PageLayout meta={meta}>
 	<section>
-		<h1 class="mb-6 title">Hello World!</h1>
+		<h1 class="mb-6 title">Hola mundo!</h1>
 		<p class="mb-4">
-			Hi, I’m a theme for Astro, an example of how you can use this starter to
-			create a personal blog. If you want to know more about how you can
-			customise me, add more posts, and make it your own, click on one of the
-			social links which will take you to my repo.
+			Hola, mi nombre es Rubén y soy desarrollador de software enfocado en el desarrollo 
+			de aplicaciones backend principalmente con lenguajes como Java, Python y JavaScript. 
+			Este es un blog para compartir el conocimiento que he adquirido a lo largo de mi carrera.
 		</p>
 		<SocialList />
 	</section>
 	<section aria-label="Blog post list" class="mt-16">
-		<h2 class="mb-4 text-xl title">Posts</h2>
+		<h2 class="mb-4 text-xl title">Publicaciones</h2>
 		<ul class="space-y-4 sm:space-y-2">
 			{
 				allPostsByDate.map((p) => (
@@ -39,7 +38,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 		</ul>
 	</section>
 	<section class="mt-16">
-		<h2 class="mb-4 text-xl title">Technologies</h2>
+		<h2 class="mb-4 text-xl title">Tecnologías</h2>
 		<ul class="space-y-4 sm:space-y-2">
 			<li>
 				<a
@@ -49,7 +48,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 					class="inline-block cactus-link"
 					>Astro
 				</a>:
-				<p class="inline-block sm:mt-2">Build fast websites, faster.</p>
+				<p class="inline-block sm:mt-2">Construye sitios web, más rapido.</p>
 			</li>
 			<li>
 				<a
@@ -60,7 +59,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 					>@astro/image
 				</a>:
 				<p class="inline-block sm:mt-2">
-					An Astro integration for optimising images in Astro projects.
+					Una integracion de Astro para optimizar imagenes.
 				</p>
 			</li>
 			<li>
@@ -72,7 +71,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 					>Tailwind CSS
 				</a>:
 				<p class="inline-block sm:mt-2">
-					Rapidly build modern websites without ever leaving your HTML.
+					Cree rápidamente sitios web modernos sin tener que abandonar su HTML.
 				</p>
 			</li>
 			<li>
@@ -83,7 +82,33 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS);
 					class="inline-block cactus-link"
 					>MDX
 				</a>:
-				<p class="inline-block sm:mt-2">Markdown for the component era.</p>
+				<p class="inline-block sm:mt-2">
+					Markdown para la era de los componentes.
+				</p>
+			</li>
+			<li>
+				<a
+					href="https://github.com/chrismwilliams/astro-theme-cactus"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="inline-block cactus-link"
+					>Astro cactus
+				</a>:
+				<p class="inline-block sm:mt-2">
+					Este sitio es un fork de Astro cactus.
+				</p>
+			</li>
+			<li>
+				<a
+					href="https://github.com/RubensVF/rubs-code-blog"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="inline-block cactus-link"
+					>Cofigo fuente
+				</a>:
+				<p class="inline-block sm:mt-2">
+					Codigo fuente del sitio.
+				</p>
 			</li>
 		</ul>
 	</section>
