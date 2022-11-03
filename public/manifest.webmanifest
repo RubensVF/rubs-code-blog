@@ -1,7 +1,7 @@
 {
-	"name": "Astro Theme Cactus Demo",
-	"short_name": "Astro_Cactus",
-	"description": "Starter blog site for Astro",
+	"name": "Rubs Code Blog",
+	"short_name": "Ruben blog",
+	"description": "Blog acerca de desarrollo de software",
 	"icons": [
 		{
 			"src": "images/icon/192x192.png",

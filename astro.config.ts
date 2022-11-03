@@ -12,7 +12,7 @@ export default defineConfig({
 		},
 	},
 	site: "https://rubensvf.github.io",
-	base: "rubs-code-blog"
+	base: "rubs-code-blog",
 	integrations: [
 		mdx({}),
 		tailwind({

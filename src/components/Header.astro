@@ -24,7 +24,7 @@ const url = new URL(Astro.request.url);
 <header>
 	<span>
 		<a
-			href="/"
+			href="/rubs-code-blog/"
 			class="logo"
 			aria-current={url.pathname === "/" ? "page" : false}
 		>
@@ -36,7 +36,7 @@ const url = new URL(Astro.request.url);
 			<span>Rubs Code Blog</span>
 		</a>
 		<nav id="navigation-menu" aria-label="Main">
-			<a href="/rubs-code-blog" aria-current={url.pathname === "/rubs-code-blog//" ? "page" : false}>Inicio</a>
+			<a href="/rubs-code-blog/" aria-current={url.pathname === "/rubs-code-blog/" ? "page" : false}>Inicio</a>
 			<a href="/rubs-code-blog/about" aria-current={url.pathname === "/rubs-code-blog//about" ? "page" : false}
 				>Acerca de
 			</a>
