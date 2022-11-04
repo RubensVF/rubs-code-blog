@@ -21,20 +21,20 @@ const { page, allTags } = Astro.props as Props;
 
 const meta = {
 	title: "Posts",
-	description: "A collection of posts by me for a starter Astro theme",
+	description: "Todos los posts",
 };
 
 const paginationProps = {
 	...(page.url.prev && {
 		prevUrl: {
 			url: page.url.prev,
-			text: `← Previous Posts`,
+			text: `← Post anterior`,
 		},
 	}),
 	...(page.url.next && {
 		nextUrl: {
 			url: page.url.next,
-			text: `Next Posts →`,
+			text: `Siguiente post →`,
 		},
 	}),
 };
@@ -96,7 +96,7 @@ const paginationProps = {
 							href="/rubs-code-blog/tags"
 							aria-label="View all blog categories"
 						>
-							View all →
+							Ver todo →
 						</a>
 					</span>
 				</aside>

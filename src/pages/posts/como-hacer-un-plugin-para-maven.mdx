@@ -1,0 +1,380 @@
+---
+layout: "@/layouts/BlogPost"
+title: Como hacer un plugin para maven
+publishDate: 02 Nov 2022
+description: Este es una, guia básica de como crear un plugin para maven desde cero con un ejemplo práctico.
+tags: ["java", "maven"]
+value: 128
+---
+import { Code } from "astro/components";
+
+## Introducción
+
+Primero recordemos que son los plugins de maven y para qué sirven.
+Los plugins de maven son una forma de extender las funcionalidades de maven, 
+por ejemplo, podemos crear un plugin para generar codigo, para compilar codigo, para generar documentación, etc.
+Durante este artículo vamos a crear un plugin para generar codigo a partir de un simple esquema de clave y valor.
+Dentro de un archivo txt vamos a tener un esquema de clave y valor, donde la clave es el nombre del atributo y 
+el valor será el tipo de atributo por ejemplo.
+
+```title="esquema.txt"  
+nombre: String
+id: Integer
+status: Boolean
+```
+
+
+## Crear el proyecto de maven
+
+Como primer paso creamos un proyecto maven a partir de un arquetipo que ya nos probé el grupo Apache Maven con la estructurá básica de un plugin de maven.
+Para crear el proyecto escribimos el siguiente comando desde la terminal.
+
+```shell
+mvn archetype:generate 
+  -DarchetypeArtifactId=maven-archetype-mojo
+```
+A continuación maven nos preguntará por el groupId, artifactId, version, package, etc.
+Una vez creado lo abrimos en nuestro IDE favorito y lo abrimos como un proyecto maven. 
+Veremos la clásica estructura de un proyecto maven, con la carpeta src/main/java donde 
+estará la clase MyMojo.java que es la clase principal de nuestro plugin. Echemos un vistazo a la clase.
+
+```java title="src/main/java/MyMojo.java" 
+package com.rubs-code.plugins;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * Goal which touches a timestamp file.
+ *
+ * @goal touch
+ * 
+ * @phase process-sources
+ */
+public class MyMojo
+    extends AbstractMojo
+{
+    /**
+     * Location of the file.
+     * @parameter expression="${project.build.directory}"
+     * @required
+     */
+    private File outputDirectory;
+
+    public void execute()
+        throws MojoExecutionException
+    {
+        File f = outputDirectory;
+
+        if ( !f.exists() )
+        {
+            f.mkdirs();
+        }
+
+        File touch = new File( f, "touch.txt" );
+
+        FileWriter w = null;
+        try
+        {
+            w = new FileWriter( touch );
+
+            w.write( "touch.txt" );
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "Error creating file " + touch, e );
+        }
+        finally
+        {
+            if ( w != null )
+            {
+                try
+                {
+                    w.close();
+                }
+                catch ( IOException e )
+                {
+                    // ignore
+                }
+            }
+        }
+    }
+}
+```
+
+Como podemos ver, la clase MyMojo extiende de la clase AbstractMojo, que es la clase principal de un plugin de maven. 
+Esta clase nos provee de métodos para leer los parámetros que le pasemos al plugin, para leer los parámetros de configuración del pom.xml,
+para leer los parámetros de configuración del settings.xml, etc. También nos provee de métodos para escribir en el log de maven, para escribir en el log de maven en modo debug, etc.
+
+El método execute() es el metodo principal de nuestro plugin, aquí es donde vamos a escribir toda la lógica de nuestro plugin. 
+El plugin que está escrito por defecto crea un archivo txt en la raíz de nuestro proyecto.
+
+Además podemos ver que para indicar el goal u objetivo de nuestro plugin, debemos colocar el tag @goal dentro de la javadoc de la clase, toda la metadata 
+referente a nuestro plugin debe ir dentro de la javadoc de la clase principal, ya que maven nos provee un plugin para leer la metadata de la javadoc en tiempo de compilacion.
+Alternativamente se pueden usar anotaciones para indicar la metadata de nuestro plugin, pero en este articulo no vamos a usar anotaciones. Si quieres usar anotaciones 
+adicionalmente debes agregar la dependencia de maven-plugin-annotations para más infamación acerca de anotaciones ver [anotaciones](https://maven.apache.org/plugin-tools/maven-plugin-annotations/index.html).
+
+Para conocer todos los metadatos que le podemos indicar a nuestro plugin, podemos ver la documentación oficial de maven [documentación](https://maven.apache.org/guides/plugin/guide-java-plugin-development.html#The_Mojo_Annotations).
+
+```xml title="pom.xml"
+<dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.6.4</version>
+      <scope>provided</scope> <!-- annotations are not used at runtime because @Retention(value=CLASS), they are needed only to build the plugin -->
+    </dependency>
+ </dependencies>
+```
+
+Ahora si queremos probar nuestro plugin primero debemos compilarlo e instalarlo en el repositorio local de maven.
+Por lo cual debemos añadir el plugin de maven-compiler-plugin.
+  
+  ```xml title="pom.xml"  
+  <project>
+  [...]
+  <build>
+    [...]
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+    [...]
+  </build>
+  [...]
+</project>
+```
+
+Luego escribimos el siguiente comando en la terminal.
+
+```shell
+mvn clean install
+```
+
+Una vez compilado e instalado en el repositorio local, podemos probarlo en cualquier proyecto de maven.
+Para probarlo podemos agregarlo en archivo pom xml y ejecutar el goal o simplemente podemos indicar el groupId, artifactId y versión del plugin en la línea de comandos.
+De la siguiente manera
+
+```shell	
+mvn groupId:artifactId:version:goal
+```
+
+En mi caso seria
+  
+```shell 
+  mvn com.rubs-code.plugins:generador-de-codigo:1.0-SNAPSHOT:touch
+```
+
+Si todo salió bien, deberíamos ver un archivo txt dentro de la carpeta target.
+
+## Crear nuestro propio plugin
+
+Primero agregaré una dependencia que nos ayudara a crear clases de java desde código si quieren saber mas acerca de esta dependencia pueden visitar [codemodel](https://sookocheff.com/post/java/generating-java-with-jcodemodel/).
+
+```xml title="pom.xml" 
+<project>
+    [...]
+    <dependencies>
+      [...]
+      <dependency>
+        <groupId>com.sun.codemodel</groupId>
+        <artifactId>codemodel</artifactId>
+        <version>2.6</version>
+      </dependency>
+      [...]
+    </dependencies>
+    [...]
+</project>
+```
+
+Luego cambiamos el nombre de la clase y añadimos los parámetros que vamos a utilizar en este caso solo usaremos dos parámetros inputFile que nos dira el nombre del archivo 
+donde esta nuestro esquema de calve valor este archivo debe de estar dentro de nuestro espacio de trabajo de maven para poder ser leído por defecto esperaremos que esté en la raíz del
+proyecto si no se debe indicar la ubicación relativa al directorio raíz y también usaremos un parámetros packageName para indicar en el paquete que queremos que se genere nuestro 
+clase java este va a tener un valor por defecto que será el groupId que por lo general es package principal del proyecto.
+
+Para crear un parámetro debemos definir el atributo de la clase java de nuestro mojo y comentar con la javadoc con tag @Parameter seguido property para darle un nombre al parámetro y 
+default-value si queremos que tenga un valor por defecto  y para indicar que es un parámetro requerido debemos usar el tag @Required como se muestra a continuación.
+
+```java title="MyMojo.java"
+/**
+ * Nombre del archivo que contiene el esquema de la clase a generar.
+ * 
+ * @parameter property="inputFile"
+ * @required
+ */
+private String inputFile;
+/**
+ * Nombre del package donde se va generar la clase de java.
+ * 
+ * @parameter property="packageName" default-value="${project.groupId}"
+ * @required
+ */
+private String packageName;
+```	
+
+Ahora añadamos lógica de nuestro plugin.
+
+Primero creamos un método que nos permita extraer el contenido de un archivo como una cadena de texto.
+
+```java title="MyMojo.java"
+/**
+ * Extrae el contenido de un archivo como una cadena de texto
+ * 
+ * @param file
+ * @throws IOException
+ */
+private String fileToString(String file) throws IOException {
+    Path fileName = Path.of(file);
+    String str = Files.readString(fileName);
+    return str;
+}
+```
+
+Luego creamos un método que nos permita convertir una cadena de texto que representa un mapa de clave valor, en un map de java.
+
+```java title="MyMojo.java"
+/**
+ * Convierte una cadena de texto que representa un mapa de clave valor, en un
+ * mapa de java
+ * 
+ * @param str
+ */
+private Map<String, String> stringToMap(String str) {
+    Map<String, String> map = new HashMap<String, String>();
+    String[] lines = str.split(System.getProperty("line.separator"));
+    for (String string : lines) {
+        String[] keyValue = string.split(":");
+        map.put(keyValue[0].replaceAll("\\s", ""), keyValue[1].replaceAll("\\s", ""));
+    }
+    return map;
+}
+```
+Finalmente creamos un método que cree el codigo fuente de una clase java partir de un mapa de clave valor, para ello inicializamos un objeto JCodeModel utilizamos el método 
+_class para indicarle el nombre de la clase, iteramos sobre el map y para cada entrada creamos un atributo de la clase con el nombre de la clave y el tipo de dato, para esto utilizamos
+el método field que recibe como parámetros el modificador de acceso el tipo de dato y el nombre del atributo y finalmente llamaos al método build indicando el directorio donde queremos
+que se guarde en nuestro caso utilizaremos src/main/java que es donde se tiene el código fuente en maven.
+
+```java title="MyMojo.java"
+/**
+ * Genera el codigo fuente de una clase java a partir de un mapa de clave valor
+ * 
+ * @param map
+ * @throws IOException
+ * @throws ClassNotFoundException
+ * @throws JClassAlreadyExistsException
+ */
+private void generateCode(Map<String, String> map)
+        throws JClassAlreadyExistsException, ClassNotFoundException, IOException {
+    JCodeModel codeModel = new JCodeModel();
+    // Se extrae el nombre de la clase a partir del nombre del archivo de entrada y
+    // se capitaliza la primera letra.
+    String className = this.inputFile.split("\\.")[0];
+    String classNameCapitalize = className.substring(0, 1).toUpperCase() + className.substring(1);
+    // Se crea la clase con los atributos indicados.
+    JDefinedClass definedClass = codeModel._class(packageName + "." + classNameCapitalize);
+    for (Entry<String, String> entry : map.entrySet()) {
+        definedClass.field(JMod.PRIVATE, Class.forName("java.lang." + entry.getValue()), entry.getKey());
+    }
+    // Se genera el archivo .java
+    codeModel.build(new File("src/main/java"));
+}
+```
+
+Finalmente llamamos a los métodos que creamos anteriormente en el método execute para que se ejecute cuando se ejecute el plugin, también podemos agregar un logger 
+para mostrar mensajes en la consola de maven. Simplemente llamamos al método getLog() que está definido en la clase AbstractMojo y llamamos a los métodos info, debug, error, warn.
+
+```java title="MyMojo.java"
+    public void execute()
+        throws MojoExecutionException {
+    try {
+        getLog().info("Generando clase java a partir del esquema: " + inputFile);
+        generateCode(
+                stringToMap(
+                        fileToString(this.inputFile)));
+    } catch (IOException | ClassNotFoundException | JClassAlreadyExistsException e) {
+        throw new MojoExecutionException("Error creating file " + this.inputFile + e);
+    }
+}
+```
+
+
+Ahora para probar nuestro plugin debemos ejecutar el siguiente comando en la raíz del proyecto.
+
+```bash
+mvn clean install
+```
+
+Este comando va a compilar nuestro proyecto y va a instalar el plugin en el repositorio local de maven, para probarlo debemos crear un proyecto maven y añadir el plugin en el archivo pom.xml
+de la siguiente manera.
+
+```xml title="pom.xml"
+<plugin>
+     <groupId>com.rubscode.plugins</groupId>
+     <artifactId>generador-de-codigo</artifactId>
+     <version>1.0-SNAPSHOT</version>
+     <configuration>
+       <inputFile>user.txt</inputFile>
+       <packageName>com.rubscode.plugins</packageName>
+     </configuration>
+</plugin>
+```
+
+También debemos añadir el archivo user.txt en la raíz del proyecto, este archivo contiene el esquema de la clase que queremos generar.
+  
+```text title="user.txt"
+  nombre: String
+  edad: Integer
+  email: String
+  id: Integer
+```
+
+Y ahora ya podemos llamarlo desde la línea únicamente indicando el artifactId y el goal.
+
+
+```bash
+mvn generador-de-codigo:generate
+```
+
+Si todo salió bien deberíamos de tener una clase User en el paqute com.rubscode.plugins con los atributos nombre, edad, email e id.
+
+```java title="User.java"
+package com.rubscode.plugins;
+
+public class User {
+
+    private Integer id;
+    private String nombre;
+    private Integer edad;
+    private String email;
+
+}
+```
+> **Advertencia**
+>Cabe resaltar que si el archivo user.txt no existe o no tiene el formato correcto el plugin no va a funcionar y va a lanzar una excepción. Ya que no se tienen validaciones
+no va a ser muy descriptivo el mensaje.
+
+## Conclusiones
+Para concluir podemos decir que los plugins de maven son una herramienta muy poderosa que nos permite automatizar tareas y crear herramientas que nos faciliten el trabajo, 
+y se componen de tres partes fundamentales, los parámetros del plugin que seran data proporcionada por el usuario, los métodos de configuración que se encargan de inicializar, el logger que
+que nos ayuda a mostrar información a través de la consola de Maven y los goals que son los objetivos que queremos que se cumplan. 
+
+Todo plugin necesita metadata para que Maven lo reconozca esta metada se puede definir en el archivo pom.xml o en un archivo llamado plugin.xml, también es necesario crear un archivo 
+de configuración para que Maven pueda ejecutar el plugin. Maven nos provee dos alternativas para crear la metadata la primera y más antigua es con anotaciones si deseas utilizar 
+anotaciones en versiones recientes debes agregar la librería maven-plugin-annotations, la otra opción más moderna es agregar tags en la javadoc.
+
+
+## Código fuente github
+* [Código fuente](https://github.com/RubensVF/como-crear-un-plugin-de-maven)
+
+
+
